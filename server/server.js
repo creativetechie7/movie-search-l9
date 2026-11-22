@@ -49,17 +49,18 @@ const watchlistsFile = path.join(__dirname, "watchlists.json");
 
 // Read and parse users.json.
 async function readUsers() {
-  const file = await fs.readFile(usersFile);
-  const text = JSON.parse(file);
+  const file = await fs.readFile(usersFile, "utf-8");
+  const users = JSON.parse(file);
 
-  return text;
+  return users;
 }
 
 // Save the updated users array back to users.json.
 async function writeUsers(users) {
-  // TODO 2:
-  // Convert users into nicely formatted JSON text using JSON.stringify(users, null, 2).
-  // Write the text to usersFile using fs.writeFile(...)
+  const user = JSON.stringify(users, null, 2);
+  const file = fs.writeFile(usersFile, user);
+
+  return file;
 }
 
 // Read and parse watchlists.json.
