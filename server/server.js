@@ -67,6 +67,10 @@ async function writeUsers(users) {
 async function readWatchlists() {
   // TODO 3:
   // Read watchlistsFile and return the parsed JSON object.
+  const file = await fs.readFile(watchlistsFile, "utf-8");
+  const watchlist = JSON.parse(file);
+
+  return watchlist;
 }
 
 // Save the updated watchlists object.
@@ -74,22 +78,57 @@ async function writeWatchlists(watchlists) {
   // TODO 4:
   // Convert watchlists into nicely formatted JSON using JSON.stringify(watchlists, null, 2).
   // Write the watchlists object back to watchlistsFile.
+
+  const watchlist = JSON.stringify(watchlists, null, 2);
+  const file = fs.writeFile(watchlistsFile, watchlist);
+
+  return file;
 }
 
 // Return true only if the username matches the lab rules.
 function isValidUsername(username) {
-  // TODO 5:
+  // USERNAME CRITERIA
   // Check that username exists.
   // Check that it is 3 to 20 characters long.
   // Check that it contains only letters and numbers.
+
+  // Regex checks for only letters and numbers, specifically for 3-20 chars.
+  // Matches on whole string ^ start - $ end.
+  const pattern = /^[a-zA-Z0-9]{3,20}$/;
+  // If username field empty
+  if (!username || typeof username !== "string") {
+    return false;
+  }
+  // Otherwise check the pattern for validity.
+  if (!pattern.test(username)) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 // Return true only if the password matches the lab rules.
 function isValidPassword(password) {
-  // TODO 6:
+  // PASSWORD CRITERIA
   // Check that password exists.
   // Check that it is at least 6 characters long.
   // Check that it contains at least one letter and one number.
+
+  // Regex checks for letters and numbers separately.
+  const charPatternTest = /[a-zA-Z]/;
+  const numPatternTest = /[0-9]/;
+  // If password empty
+  if (!password || typeof password !== "string") {
+    return false;
+  } else if (password.length < 6) {
+    return false;
+  } else if (!charPatternTest.test(password)) {
+    return false;
+  } else if (!numPatternTest.test(password)) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 // This middleware protects routes that require login.
