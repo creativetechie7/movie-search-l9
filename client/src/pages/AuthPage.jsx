@@ -33,6 +33,13 @@ export default function AuthPage({ setLoggedInUser }) {
             });
             const data = await response.json();
             setMessage(data.message);
+
+            // Inputs are controlled (value={state}), so clearing the state clears the field.
+            // On success clear both; on failure keep the username so it can be corrected.
+            if (response.ok) {
+                setRegisterUsername("");
+            }
+            setRegisterPassword("");
         } catch {
             setMessage("Could not reach the server. Is it running?");
         }

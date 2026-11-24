@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
 import MovieGrid from "../components/MovieGrid";
+import Poster from "../components/Poster";
 
 const API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
@@ -145,13 +146,19 @@ export default function MoviePage({ loggedInUser, setLoggedInUser }) {
 
     return (
         <main className="moviePage">
+            {/* Skip link: hidden until focused with Tab. Lets keyboard users jump past
+                the search results (one button per movie) straight to the watchlist. */}
+            <a className="skipLink" href="#watchlist">
+                Skip to your watchlist
+            </a>
+
             <header className="topBar">
                 <div>
                     <h1>Welcome, {loggedInUser}!</h1>
                     <p>Search OMDb and save movies to your personal watchlist.</p>
                     <p>Current search: {searchTerm}</p>
                 </div>
-                <button onClick={handleLogout}>Logout</button>
+                <button className="dangerButton" onClick={handleLogout}>Logout</button>
             </header>
 
             <SearchBar searchTerm={searchTerm} onSearch={handleSearch} />
@@ -161,16 +168,24 @@ export default function MoviePage({ loggedInUser, setLoggedInUser }) {
 
             <MovieGrid movies={movies} onAdd={addToWatchlist} />
 
-            <section className="card">
-                <h2>Your Watchlist</h2>
+            {/* tabIndex={-1} lets the skip link move keyboard focus here
+                (a section is not normally focusable). */}
+            <section id="watchlist" className="card watchlistSection" tabIndex={-1}>
+                <h2>Your Watchlist ({watchlist.length})</h2>
                 {watchlist.length === 0 ? (
                     <p>No saved movies yet.</p>
                 ) : (
-                    <ul className="watchlist">
+                    <ul className="watchlistGrid">
                         {watchlist.map((movie) => (
-                            <li key={movie.imdbID}>
-                                <span>{movie.Title} ({movie.Year})</span>
-                                <button onClick={() => removeFromWatchlist(movie.imdbID)}>
+                            <li key={movie.imdbID} className="watchlistCard">
+                                <Poster movie={movie} />
+                                <h3>{movie.Title}</h3>
+                                <p>{movie.Year}</p>
+                                <button
+                                    className="dangerButton"
+                                    onClick={() => removeFromWatchlist(movie.imdbID)}
+                                    aria-label={`Remove ${movie.Title} from watchlist`}
+                                >
                                     Remove
                                 </button>
                             </li>
