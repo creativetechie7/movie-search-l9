@@ -55,7 +55,19 @@ export default function MoviePage({ loggedInUser, setLoggedInUser }) {
     async function fetchWatchlist() {
         // TODO 21: 
         // Send GET /api/watchlist with credentials: "include". 
-        // If response.ok is true, save the returned array in watchlist state. 
+        // If response.ok is true, save the returned array in watchlist state.
+        try {
+            const response = await fetch("http://localhost:3001/api/watchlist", {
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setWatchlist(data);
+            }
+        } catch {
+            setError("Could not load your watchlist.");
+        }
     }
 
     async function handleLogout() {
@@ -64,20 +76,71 @@ export default function MoviePage({ loggedInUser, setLoggedInUser }) {
         // If successful: 
         // 1. setLoggedInUser(null) 
         // 2. setWatchlist([]) 
-        // 3. navigate("/") 
+        // 3. navigate("/")
+        try {
+            const response = await fetch("http://localhost:3001/api/logout", {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                setLoggedInUser(null);
+                setWatchlist([]);
+                navigate("/");
+            }
+        } catch {
+            setError("Could not log out. Is the server running?");
+        }
     }
 
     async function addToWatchlist(movie) {
         // TODO 23: 
         // Send POST /api/watchlist with JSON movie data. 
         // Include headers and credentials: "include". 
-        // After a successful response, call fetchWatchlist() again. 
+        // After a successful response, call fetchWatchlist() again.
+        try {
+            const response = await fetch("http://localhost:3001/api/watchlist", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(movie),
+            });
+
+            if (response.ok) {
+                setError("");
+                await fetchWatchlist();
+            } else {
+                const data = await response.json();
+                setError(data.message);
+            }
+        } catch {
+            setError("Could not add the movie. Is the server running?");
+        }
     }
 
     async function removeFromWatchlist(imdbID) {
         // TODO 24: 
-        // Send DELETE /api/watchlist/:imdbID with credentials: "include". 
-        // After a successful response, call fetchWatchlist() again. 
+        // Send DELETE /api/watchlist/:imdbID with credentials: "include".
+        // After a successful response, call fetchWatchlist() again.
+        try {
+            const response = await fetch(
+                `http://localhost:3001/api/watchlist/${encodeURIComponent(imdbID)}`,
+                {
+                    method: "DELETE",
+                    credentials: "include",
+                },
+            );
+
+            if (response.ok) {
+                setError("");
+                await fetchWatchlist();
+            } else {
+                const data = await response.json();
+                setError(data.message);
+            }
+        } catch {
+            setError("Could not remove the movie. Is the server running?");
+        }
     }
 
     return (
