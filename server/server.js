@@ -156,11 +156,32 @@ app.post("/api/register", async (req, res) => {
     // Validate missing fields.
     // Validate username format with isValidUsername(...).
     // Validate password format with isValidPassword(...).
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ message: "Username and password are required." });
+    }
+    if (!isValidUsername(username)) {
+      return res.status(400).json({
+        message:
+          "Username must be 3 to 20 characters, letters and numbers only.",
+      });
+    }
+    if (!isValidPassword(password)) {
+      return res.status(400).json({
+        message:
+          "Password must be at least 6 characters and include at least one letter and one number.",
+      });
+    }
 
     const users = await readUsers();
     // TODO 8:
     // Check whether the username already exists.
     // If it exists, return status 400 with a clear JSON message.
+    const usernameTaken = users.some((user) => user.username === username);
+    if (usernameTaken) {
+      return res.status(400).json({ message: "Username already taken." });
+    }
 
     // bcrypt.hash(...) turns the plain password into a secure hash.
     const passwordHash = await bcrypt.hash(password, 10);
@@ -169,12 +190,16 @@ app.post("/api/register", async (req, res) => {
     // Push the new user object into the users array.
     // Use the keys exactly like this: { username, passwordHash }.
     // Save users using writeUsers(...).
+    users.push({ username, passwordHash });
+    await writeUsers(users);
 
     const watchlists = await readWatchlists();
 
     // TODO 10:
     // Create an empty watchlist array for the new user.
     // Save watchlists using writeWatchlists(...).
+    watchlists[username] = [];
+    await writeWatchlists(watchlists);
 
     res.status(201).json({ message: "Registration successful." });
   } catch (error) {
@@ -192,6 +217,11 @@ app.post("/api/login", async (req, res) => {
 
     // TODO 11:
     // Validate missing fields.
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ message: "Username and password are required." });
+    }
 
     const users = await readUsers();
 
@@ -199,6 +229,12 @@ app.post("/api/login", async (req, res) => {
     // Create a variable named user using:
     // const user = users.find((u) => u.username === username);
     // If no user is found, return status 401.
+    const user = users.find((u) => u.username === username);
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "Invalid username or password." });
+    }
 
     // bcrypt.compare(...) checks the plain password against the stored hash.
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
@@ -206,6 +242,12 @@ app.post("/api/login", async (req, res) => {
     // TODO 13:
     // If the password does not match, return status 401.
     // If it does match, save the username in req.session.username.
+    if (!passwordMatches) {
+      return res
+        .status(401)
+        .json({ message: "Invalid username or password." });
+    }
+    req.session.username = username;
 
     res.json({ message: "Login successful.", username });
   } catch (error) {
